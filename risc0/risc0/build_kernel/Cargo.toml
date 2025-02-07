@@ -1,0 +1,17 @@
+[package]
+name = "risc0-build-kernel"
+description = "RISC Zero tool for building kernels"
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+
+[dependencies]
+cc = { version = "1.2.2", features = ["parallel"] }
+directories = "5.0"
+glob = "0.3"
+hex = "0.4"
+rayon = "1.10"
+sha2 = "0.10"
+tempfile = "3.12"
