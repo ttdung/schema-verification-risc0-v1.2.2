@@ -4,6 +4,8 @@ members = [
   "json-validate",
   "json-validate/core",
   "json-verify",
+  "encrypt-aesgcm",
+  "encrypt-aesgcm/core",
 ]
 
 # Always optimize; otherwise tests take excessively long.
