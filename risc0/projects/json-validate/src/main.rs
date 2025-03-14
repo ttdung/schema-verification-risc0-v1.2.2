@@ -23,10 +23,17 @@ use std::fs::File;
 use std::io::Write;
 use anyhow::{Result, bail, Context};
 use alloy_sol_types::SolValue;
-// use std::env;
+use std::env;
+use std::fs;
 // use std::time::Instant;
 
 fn main() {
+
+    let args: Vec<String> = env::args().collect();
+
+    let data_filename = &args[1];
+    let schema_filename = &args[2];
+
     // let data = "{\"name1\": \"John Doe\",\"age\": 23}";
     // let data = include_str!("../res/data_complex_obj.json");
     // let schema = include_str!("../res/schema_complex_obj.json");
@@ -34,26 +41,26 @@ fn main() {
     // let data = include_str!("../res/data_array.json");
     // let schema = include_str!("../res/schema_array.json");
 
-    let data = include_str!("../res/data.json");
-    let schema = include_str!("../res/schema.json");
+    // let data = include_str!("../res/data.json");
+    // let schema = include_str!("..res/schema.json");
     // let args: Vec<String> = env::args().collect();
     // let filename = &args[1];
 
-    // if filename.len() == 0 {
-    //     eprintln!("Error NO input file:");
-    // }
+    if data_filename.len() == 0 || schema_filename.len() == 0{
+        println!("Error NO input file. Usage: cargo run <data.json> <schema.json>");
+    }
     // let data = include_str!(filename);
     // println!("input {}", filename);
 
-    // let contents = fs::read_to_string(filename)
-    // .expect("Should have been able to read the file");
+    let data = fs::read_to_string(data_filename).expect("Should have been able to read the file");
 
+    let schema = fs::read_to_string(schema_filename).expect("Should have been able to read the file");
     // let outputs = check_schema(data, schema);
     // println!();
     // println!("validate schema result {}", outputs);
 
     // let _ = benchmark_prove(data, schema);
-    let _ = check_schema(data, schema);
+    let _ = check_schema(&data, &schema);
 }
 
 
@@ -89,8 +96,10 @@ fn check_schema(data: &str, schema: &str) -> Result<()> {
     let seal = encode_seal(&receipt)?;
 
     // let seal_hex_string = vec_to_hex_string(&seal);
-    println!("seal hex_string: {}", hex::encode(seal));
+    println!("seal hex_string: {}", hex::encode(seal.clone()));
 
+    let mut file_seal = File::create("./res/seal.dat").expect("failed to create file");
+    file_seal.write_all(hex::encode(seal.clone()).as_bytes()).expect("failed to write");
         
     // Extract the journal from the receipt.
     let journal = receipt.journal.bytes.clone();
@@ -102,14 +111,24 @@ fn check_schema(data: &str, schema: &str) -> Result<()> {
 
     println!("journal: {}", hex::encode(journal.clone()));
 
+    let mut file_journal = File::create("./res/journal.dat").expect("failed to create file");
+    file_journal.write_all(hex::encode(journal.clone()).as_bytes()).expect("failed to write");
+
     let x = Vec::<u8>::abi_decode(&journal, true).context("decoding journal data")?;
     
-    println!("journal abi_decode: {}", hex::encode(x));
+    println!("journal abi_decode: {}", hex::encode(x.clone()));
+
+    let mut file_journal_abi = File::create("./res/journal_abi.dat").expect("failed to create file");
+    file_journal_abi.write_all(hex::encode(x.clone()).as_bytes()).expect("failed to write");
 
     // Compute the Image ID
     let image_id = hex::encode(compute_image_id(CHECK_SCHEMA_ELF)?);
 
-    println!("Image ID: {}", image_id);
+    println!("Image ID: {}", image_id.clone());
+
+    
+    let mut file_image = File::create("./res/image_id.dat").expect("failed to create file");
+    file_image.write_all(image_id.clone().as_bytes()).expect("failed to write");
 
     // Dump receipe using serde
     let receipt_json = serde_json::to_string_pretty(&receipt).unwrap();
